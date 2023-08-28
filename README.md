@@ -135,8 +135,6 @@ Add an endpoint to the Logic App HTTP Triggered workflow
 
 Update the file env.sh to use APIM endpoint instead of Logic App endpoint
 
-```sh
-
 Cleanup
 -------
 
