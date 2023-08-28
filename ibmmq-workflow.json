@@ -1,0 +1,115 @@
+{
+  "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "actions": {
+          "For_each_trade": {
+              "actions": {
+                  "Check_Large_Trade": {
+                      "actions": {
+                          "Put_Large_Trade": {
+                              "inputs": {
+                                  "parameters": {
+                                      "message": "@json(item().contentData)",
+                                      "queueName": "DEMO.LARGE.TRADE",
+                                      "sendMessageOptions": {
+                                          "format": "String"
+                                      }
+                                  },
+                                  "serviceProviderConfiguration": {
+                                      "connectionName": "mq",
+                                      "operationId": "sendMessage",
+                                      "serviceProviderId": "/serviceProviders/mq"
+                                  }
+                              },
+                              "type": "ServiceProvider"
+                          }
+                      },
+                      "else": {
+                          "actions": {
+                              "Put_Regular_Trade": {
+                                  "inputs": {
+                                      "parameters": {
+                                          "message": "@json(item().contentData)",
+                                          "queueName": "DEMO.REGULAR.TRADE",
+                                          "sendMessageOptions": {
+                                              "format": "String"
+                                          }
+                                      },
+                                      "serviceProviderConfiguration": {
+                                          "connectionName": "mq",
+                                          "operationId": "sendMessage",
+                                          "serviceProviderId": "/serviceProviders/mq"
+                                      }
+                                  },
+                                  "type": "ServiceProvider"
+                              }
+                          }
+                      },
+                      "expression": {
+                          "and": [
+                              {
+                                  "greaterOrEquals": [
+                                      "@json(item().contentData)['notional']",
+                                      100000
+                                  ]
+                              }
+                          ]
+                      },
+                      "type": "If"
+                  }
+              },
+              "foreach": "@body('Retrieve_multiple_trades')?['messages']",
+              "runAfter": {
+                  "Retrieve_multiple_trades": [
+                      "SUCCEEDED"
+                  ]
+              },
+              "type": "Foreach"
+          },
+          "Retrieve_multiple_trades": {
+              "inputs": {
+                  "parameters": {
+                      "getMessageOptions": {
+                          "format": "String",
+                          "maximumBatchSizeInMB": 10,
+                          "maximumMessagesInBatch": 50
+                      },
+                      "includeInfo": true,
+                      "queueName": "DEMO.REQUEST.TRADE"
+                  },
+                  "serviceProviderConfiguration": {
+                      "connectionName": "mq",
+                      "operationId": "receiveBatch",
+                      "serviceProviderId": "/serviceProviders/mq"
+                  }
+              },
+              "runAfter": {},
+              "type": "ServiceProvider"
+          }
+      },
+      "contentVersion": "1.0.0.0",
+      "outputs": {},
+      "triggers": {
+          "When_one_or_more_trades_are_received": {
+              "inputs": {
+                  "parameters": {
+                      "queueName": "DEMO.REQUEST.TRADE"
+                  },
+                  "serviceProviderConfiguration": {
+                      "connectionName": "mq",
+                      "operationId": "pollAvailable",
+                      "serviceProviderId": "/serviceProviders/mq"
+                  }
+              },
+              "kind": "Polling",
+              "recurrence": {
+                  "frequency": "Minute",
+                  "interval": 1,
+                  "timeZone": "AUS Eastern Standard Time"
+              },
+              "type": "ServiceProvider"
+          }
+      }
+  },
+  "kind": "Stateful"
+}

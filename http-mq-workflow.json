@@ -1,0 +1,122 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Check_Large_Trade": {
+                "actions": {
+                    "Put_Large_Trade": {
+                        "inputs": {
+                            "parameters": {
+                                "message": "@triggerBody()",
+                                "queueName": "DEMO.LARGE.TRADE",
+                                "sendMessageOptions": {
+                                    "format": "String"
+                                }
+                            },
+                            "serviceProviderConfiguration": {
+                                "connectionName": "mq",
+                                "operationId": "sendMessage",
+                                "serviceProviderId": "/serviceProviders/mq"
+                            }
+                        },
+                        "type": "ServiceProvider"
+                    }
+                },
+                "else": {
+                    "actions": {
+                        "Put_Regular_Trade": {
+                            "inputs": {
+                                "parameters": {
+                                    "message": "@triggerBody()",
+                                    "queueName": "DEMO.REGULAR.TRADE",
+                                    "sendMessageOptions": {
+                                        "format": "String"
+                                    }
+                                },
+                                "serviceProviderConfiguration": {
+                                    "connectionName": "mq",
+                                    "operationId": "sendMessage",
+                                    "serviceProviderId": "/serviceProviders/mq"
+                                }
+                            },
+                            "type": "ServiceProvider"
+                        }
+                    }
+                },
+                "expression": {
+                    "and": [
+                        {
+                            "greaterOrEquals": [
+                                "@triggerBody()?['notional']",
+                                100000
+                            ]
+                        }
+                    ]
+                },
+                "runAfter": {},
+                "type": "If"
+            },
+            "Confirm_Place_Trade": {
+                "inputs": {
+                    "body": "@triggerBody()",
+                    "statusCode": 202
+                },
+                "kind": "Http",
+                "runAfter": {
+                    "Check_Large_Trade": [
+                        "SUCCEEDED"
+                    ]
+                },
+                "type": "Response"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "triggers": {
+            "Place_Trade": {
+                "inputs": {
+                    "method": "POST",
+                    "schema": {
+                        "properties": {
+                            "accountNumber": {
+                                "type": "string"
+                            },
+                            "buySell": {
+                                "type": "string"
+                            },
+                            "counterparty": {
+                                "type": "string"
+                            },
+                            "currencyPair": {
+                                "type": "string"
+                            },
+                            "notional": {
+                                "type": "integer"
+                            },
+                            "rate": {
+                                "type": "number"
+                            },
+                            "status": {
+                                "type": "string"
+                            },
+                            "tradeDate": {
+                                "type": "string"
+                            },
+                            "tradeId": {
+                                "type": "integer"
+                            },
+                            "trader": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "kind": "Http",
+                "operationOptions": "EnableSchemaValidation",
+                "type": "Request"
+            }
+        }
+    },
+    "kind": "Stateful"
+}
