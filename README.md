@@ -81,7 +81,7 @@ Configure the private CA certificate for the MQ server
 
 ### Add workflow - Message Queue trigger (input from a MQ queue, write to another MQ queue)
 
-Create a new Logic App workflow.
+Create a new Logic App workflow (see completed worklflow [`ibmmq-workflow.json`](./ibmmq-workflow.json)).
 
 - Add a MQ trigger (polling every 1 minute) with a new MQ connection settings:
 
@@ -110,7 +110,7 @@ Test the workflow:
 
 ### Add workflow - HTTP request trigger from APIM (output to a MQ queue)
 
-Create a new Logic App workflow.
+Create a new Logic App workflow (see completed worklflow [`http-mq-workflow.json`](./http-mq-workflow.json)).
 
 - Add a Request (HTTP) trigger
 - Add a Condition to check if notional > 100000
